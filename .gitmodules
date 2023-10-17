@@ -1,0 +1,6 @@
+[submodule "ce-styles"]
+	path = ce-styles
+	url = https://github.com/openstax/ce-styles.git
+[submodule "cookbook"]
+	path = cookbook
+	url = https://github.com/openstax/cookbook.git
