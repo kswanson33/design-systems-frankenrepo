@@ -1,0 +1,42 @@
+#!/bin/bash
+
+usage="build-recipe-style --data-dir <directory> --recipe <recipe or style> --build-for <recipe|style|all>"
+
+data_dir=""
+recipe_style=""
+build_for=""
+
+while [ -n "$1" ]; do
+    case "$1" in
+        --help)
+            echo $usage
+            exit 0
+        ;;
+        --data-dir) shift; data_dir=$1 ;;
+        --recipe) shift; recipe_style=$1 ;;
+        --build-for) shift; build_for=$1 ;;
+        *)
+            echo -e "Invalid argument '$1'"
+            echo $usage
+            exit 2
+        ;;
+    esac
+    shift
+done
+
+# TODO: error if required arguments are not defined
+
+if [[ $build_for == "all" || $build_for == "recipe" ]]; then
+  echo "Baking book: $recipe_style"
+  NO_IMAGE_RESOURCES=1 ./cookbook/bake -b $recipe_style -i $data_dir/assembled.xhtml -o $data_dir/baked.xhtml
+  sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"the-style-pdf.css\" />&%" "$data_dir/baked.xhtml"
+fi
+
+if [[ $build_for == "all" || $build_for == "style" ]]; then
+  echo "Building style for: $recipe_style"
+  dart ce-styles/styles/build/build.dart ce-styles/styles/books/$recipe_style/book.scss $data_dir/the-style-pdf.css ./ce-styles/styles/
+  # copy style into styles output folder
+  cp $data_dir/the-style-pdf.css ce-styles/styles/output/$recipe_style-pdf.css
+fi
+
+echo "Finished rebuild; preview file at $data_dir/baked.xhtml"
